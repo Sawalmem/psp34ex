@@ -3,20 +3,24 @@
 
 #[openbrush::contract]
 pub mod psp34ex {
+    use openbrush::contracts::psp34::*; 
     use openbrush::contracts::psp34::extensions::metadata::*;
+    use openbrush::contracts::psp34::extensions::enumerable::*;  
     use ink_prelude::{
         string::String,
         vec::Vec,
     };
     use ink_storage::traits::SpreadAllocate;
 
-    #[derive(Default, SpreadAllocate, PSP34Storage, PSP34MetadataStorage)]
+    #[derive(Default, SpreadAllocate, PSP34Storage, PSP34MetadataStorage, PSP34EnumerableStorage)]
     #[ink(storage)]
     pub struct PSP34EX {
         #[PSP34StorageField]
         psp34: PSP34Data,
         #[PSP34MetadataStorageField]
         metadata: PSP34MetadataData,
+        #[PSP34EnumerableStorageField]
+        enumerable: PSP34EnumerableData,  
         id: u8,
         ipfshash: Vec<String>,
     }
@@ -24,6 +28,8 @@ pub mod psp34ex {
     impl PSP34 for PSP34EX {}
 
     impl PSP34Metadata for PSP34EX {}
+
+    impl PSP34Enumerable for PSP34EX {}
 
     impl PSP34EX {
         /// A constructor which mints the first token to the owner
