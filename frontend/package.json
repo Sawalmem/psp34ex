@@ -35,6 +35,8 @@
   "browserslist": {
     "production": [
       ">0.2%",
+      "not ie <= 99",
+      "not android <= 4.4.4",
       "not dead",
       "not op_mini all"
     ],
@@ -45,6 +47,7 @@
     ]
   },
   "devDependencies": {
+    "react-scripts": "^5.0.1",
     "@babel/plugin-proposal-private-property-in-object": "^7.18.6"
   }
 }
