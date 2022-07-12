@@ -61,8 +61,8 @@ const Home = (props) => {
                                 {sChoices.map(choice => (<option value={choice.value}>{choice.name}</option>))}
                             </Form.Select>
                             <br />
-                            <Button variant="primary" onClick={handleOnMint}>Mint</Button>{'     '}
-                            <Button variant="primary" onClick={handleOnDashboard}>Dashboard</Button>{'     '}
+                            <Button variant="danger" onClick={handleOnMint}>Mint</Button>{'     '}
+                            <Button variant="danger" onClick={handleOnDashboard}>Dashboard</Button>{'     '}
                         </Card.Body>
                     </Card>
                 </Col>

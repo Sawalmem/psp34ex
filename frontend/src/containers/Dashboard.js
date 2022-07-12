@@ -85,9 +85,9 @@ const Dashboard = (props) => {
 
             for (let i = 0; i < ownerNFTTotal;++i) {
                 let cid = arr[i];
-                let str = arr[i].split("/");
+                //let str = arr[i].split("/");
                 console.log(cid);
-                cid = str[str.length-1];
+                //cid = str[str.length-1];
                 const cidformat = "f" + cid.substring(2);
                 console.log("cid : ",cidformat);
                 //const cidV0 = new CID(cidformat).toV0().toString();
@@ -140,7 +140,7 @@ const Dashboard = (props) => {
                                 Looks like you don't have any NFTs in your dashboard. 
                                 You can mint them here. 
                             </Card.Text>
-                            <Button variant="primary" onClick={handleOnMint}>Mint</Button>
+                            <Button variant="danger" onClick={handleOnMint}>Mint</Button>
                             </Card.Body>
                             
                         </Card>

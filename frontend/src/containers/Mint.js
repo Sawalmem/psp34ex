@@ -32,8 +32,8 @@ const Mint = (props) => {
 
         try {
             const added = await client.add(tokenURI);
-            const url = `https://ipfs.infura.io/ipfs/${added.path}`;
-            return url;
+            //const url = `https://ipfs.infura.io/ipfs/${added.path}`;
+            return added.path;
         } catch (error) {
             console.log(error);
         }
@@ -115,7 +115,7 @@ const Mint = (props) => {
                     <Form.Label>Upload Image File</Form.Label>
                     <Form.Control type="file" onChange={onHandleFileChange} />
                 </Form.Group>
-                <Button variant="primary" onClick={onHandleMint}
+                <Button variant="danger" onClick={onHandleMint}
                  disabled={mintDisable}>Mint</Button>
                  <Form.Group>
                     <Form.Label>
