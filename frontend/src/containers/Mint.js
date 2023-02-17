@@ -4,6 +4,8 @@ import { create as ipfsHttpClient } from "ipfs-http-client";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import { MARKETPLACE_ADDRESS_ROCOCO } from "../assets/constants";
+
 const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
 const proofSize = 131072;
 const refTime = 6219235328;
@@ -64,57 +66,53 @@ const Mint = (props) => {
           },
         });
 
-        const ImgHash = `ipfs://${resFile.data.IpfsHash}`;
+        const ImgHash = JSON.stringify(`ipfs://${resFile.data.IpfsHash}`);
         console.log(ImgHash);
         //Take a look at your Pinata Pinned section, you will see a new file added to you list.
         setMintDisable(true);
 
         const gasLimit = -1;
 
-        const { gasRequired, result, output } =
-          await props.nftContract.query.get(props.activeAccount.address, {
-            gasLimit,
-            storageDepositLimit,
-          });
+        // const { gasRequired, result, output } =
+        //   await props.nftContract.query.get(props.activeAccount.address, {
+        //     gasLimit,
+        //     storageDepositLimit,
+        //   });
 
-        console.log({ gasRequired, result, output });
-
-        let item = await props.nftContract.query["psp34::collectionId"](
-          props.activeAccount.address,
-          { gasLimit }
-        );
-
-        console.log({ item });
+        // console.log({ gasRequired, result, output });
 
         if (ImgHash) {
-          await props.nftContract.tx
-            .mint({ gasLimit }, ImgHash)
-            .signAndSend(
-              props.activeAccount.address,
-              { signer: props.signer },
-              (result) => {
-                console.log("Transaction status:", result.status.type);
+          await props.nftContract.tx["customMint::mint"](
+            props.activeAccount,
+            ImgHash,
+            MARKETPLACE_ADDRESS_ROCOCO,
+            { gasLimit }
+          ).signAndSend(
+            props.activeAccount.address,
+            { signer: props.signer },
+            (result) => {
+              console.log("Transaction status:", result.status.type);
+              setDisplayMessage(result.status.type);
+              if (result.status.isInBlock) {
+                console.log(
+                  "Included at block hash",
+                  result.status.asInBlock.toHex()
+                );
                 setDisplayMessage(result.status.type);
-                if (result.status.isInBlock) {
-                  console.log(
-                    "Included at block hash",
-                    result.status.asInBlock.toHex()
-                  );
-                  setDisplayMessage(result.status.type);
-                }
-
-                if (result.status.isFinalized) {
-                  console.log(
-                    "Finalized block hash",
-                    result.status.asFinalized.toHex()
-                  );
-                  setDisplayMessage(result.status.type);
-
-                  //setDisplayMessage(result.status.asFinalized.toHex());
-                  process.exit(0);
-                }
               }
-            );
+
+              if (result.status.isFinalized) {
+                console.log(
+                  "Finalized block hash",
+                  result.status.asFinalized.toHex()
+                );
+                setDisplayMessage(result.status.type);
+
+                //setDisplayMessage(result.status.asFinalized.toHex());
+                process.exit(0);
+              }
+            }
+          );
         }
       } catch (error) {
         console.log("Error sending File to IPFS: ");

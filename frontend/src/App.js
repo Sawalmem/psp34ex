@@ -7,14 +7,14 @@ import {
   web3FromSource,
 } from "@polkadot/extension-dapp";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { ContractPromise, Abi } from "@polkadot/api-contract";
+import { ContractPromise } from "@polkadot/api-contract";
+import tokenABI from "./contracts/token";
+import marketplaceABI from "./contracts/marketplace";
 import {
+  TOKEN_ADDRESS_ROCOCO,
   MARKETPLACE_ADDRESS_ROCOCO,
   RPC_URL_ROCOCO,
-  TOKEN_ADDRESS_ROCOCO,
 } from "./assets/constants";
-import TokenAbiData from "./contracts/token";
-import MarketplaceAbiData from "./contracts/marketplace";
 
 import Toolbar from "./components/Toolbar";
 import Home from "./containers/Home";
@@ -25,13 +25,19 @@ import List from "./containers/List.js";
 function App() {
   const [allAccounts, setAllAccounts] = useState();
   const [activeAccount, setActiveAccount] = useState(null);
-  const [tokenContract, setTokenContract] = useState(null);
   const [marketplaceContract, setMarketplaceContract] = useState(null);
+  const [tokenContract, setTokenContract] = useState(null);
   const [signer, setSigner] = useState(null);
-  const [apiProimse, setApiProimse] = useState(null);
+
+  //console.log(allAccounts);
+
+  useEffect(() => {
+    console.log("contract token: ", tokenContract);
+    console.log("contract amrketplace: ", marketplaceContract);
+  }, [tokenContract, marketplaceContract]);
 
   const walletInit = useCallback(async () => {
-    const allInjected = await web3Enable("psp34ex");
+    const allInjected = await web3Enable("token");
 
     if (allInjected.length === 0) {
       console.log("No extension installed");
@@ -65,27 +71,20 @@ function App() {
     if (activeAccount) {
       const wsProvider = new WsProvider(RPC_URL_ROCOCO);
       const api = await ApiPromise.create({ provider: wsProvider });
-      setApiProimse(api);
       await api.isReady;
-
-      const tokenABI = new Abi(TokenAbiData, api.registry.getChainProperties());
       const tokenContract = new ContractPromise(
         api,
         tokenABI,
         TOKEN_ADDRESS_ROCOCO
       );
-
-      const marketplaceABI = new Abi(
-        MarketplaceAbiData,
-        api.registry.getChainProperties()
-      );
+      setTokenContract(tokenContract);
       const marketplaceContract = new ContractPromise(
         api,
         marketplaceABI,
         MARKETPLACE_ADDRESS_ROCOCO
       );
-      setTokenContract(tokenContract);
       setMarketplaceContract(marketplaceContract);
+      console.log("activeAccount ::::", activeAccount);
       const accountSigner = await web3FromSource(
         activeAccount.meta.source
       ).then((res) => res.signer);
@@ -99,6 +98,7 @@ function App() {
 
   const onHandleSelect = (e) => {
     e.preventDefault();
+    console.log("ETAR", e.target.value);
     setActiveAccount(allAccounts[e.target.value]);
   };
 
@@ -143,7 +143,6 @@ function App() {
               activeAccount={activeAccount}
               signer={signer}
               nftContract={tokenContract}
-              apiPromise={apiProimse}
             />
           }
         />
