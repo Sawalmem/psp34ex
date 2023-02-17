@@ -6,18 +6,21 @@ import Front from "../components/Front";
 import {Buffer} from 'buffer';
 import {useNavigate} from 'react-router-dom';
 import { MARKETPLACE_ADDRESS_ROCOCO, RPC_URL_ROCOCO } from "../assets/constants";
+import BN from "bn.js";
 
+let storageDepositLimit = null;
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0');
 
 const Dashboard = (props) => {
     const [active,setActive] = useState(null);
-    const [ownerNFTTotal,setOwnerNFTTotal] = useState(0);
+    const [ownerNFTTotal,setOwnerNFTTotal] = useState();
     const [uidArray,setUidArray] = useState([]);
     const [ownerNFTURI,setOwnerNFTURI] = useState(null);
     const navigate = useNavigate();
     const handleOnMint = useCallback(() => navigate('/mint', {replace: true}), [navigate]);
 
+    console.log("Owner NFT Total", ownerNFTTotal);
     console.log(ownerNFTURI);
 
     
@@ -32,19 +35,20 @@ const Dashboard = (props) => {
     },[props.activeAccount])
 
     const load_balance = async () => {
-        const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+        const wsProvider = new WsProvider(RPC_URL_ROCOCO);
         const api = await ApiPromise.create({provider: wsProvider});
         await api.isReady;
         const gasLimit = api.registry.createType("WeightV2", {
         refTime: new BN("10000000000"),
         proofSize: new BN("10000000000"),
         });
-        const {gasRequired, result, output} = await nftContract.query["psp34::balanceOf"]
+        console.log(props.nftContract);
+        const {gasRequired, result, output} = await props.nftContract.query["psp34::balanceOf"]
         (props.activeAccount.address,{gasLimit : gasLimit, storageDepositLimit},props.activeAccount.address);
         console.log(result.toHuman());
 
         // the gas consumed for contract execution
-        console.log(gasRequired.toHuman());
+        console.log(gasRequired);
 
         // check if the call was successful
         if (result.isOk) {
@@ -52,7 +56,8 @@ const Dashboard = (props) => {
         console.log('Success', output?.toHuman());
 
         if (output) {
-            setOwnerNFTTotal(output?.toString());
+            let str = output?.toString();
+            setOwnerNFTTotal(parseInt(str.replace(/\D/g, "")));
         }
         } else {
         console.error('Error', result.asErr);
@@ -67,7 +72,7 @@ const Dashboard = (props) => {
         if (ownerNFTTotal > 0) {
             let arr = [];
             console.log("total : ",ownerNFTTotal);
-            const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+            const wsProvider = new WsProvider(RPC_URL_ROCOCO);
             const api = await ApiPromise.create({provider: wsProvider});
             await api.isReady;
             const gasLimit = api.registry.createType("WeightV2", {
@@ -100,7 +105,7 @@ const Dashboard = (props) => {
 
     const load_hashes = async () => {
         if (ownerNFTTotal > 0) {
-            const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+            const wsProvider = new WsProvider(RPC_URL_ROCOCO);
             const api = await ApiPromise.create({provider: wsProvider});
             await api.isReady;
             const gasLimit = api.registry.createType("WeightV2", {
@@ -111,11 +116,12 @@ const Dashboard = (props) => {
 
             for (let i = 0; i < ownerNFTTotal; ++i) {
                 let uid = uidArray[i].output.toHuman().Ok.U64;
+                console.log("uid",uidArray[i]);
                 //console.log(uid.output.toHuman().Ok.U8);
                 //console.log("UIDX",uid.toNumber());
-                const {gasRequired, result, output} = await props.nftContract.query.getTokenUri
+                const {gasRequired, result, output} = await props.nftContract.query["customMint::getTokenUri"]
                 (props.activeAccount.address,{gasLimit : gasLimit, storageDepositLimit},uid).then(
-                    output => arr.push(output.toHuman())
+                    output => arr.push(output)
                 )
                 //console.log(uri.output.toHuman());
                 //arr.push(uri.output.toHuman());

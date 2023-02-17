@@ -132,7 +132,7 @@ function App() {
             <Dashboard
               activeAccount={activeAccount}
               signer={signer}
-              nftContract={marketplaceContract}
+              nftContract={tokenContract}
             />
           }
         />

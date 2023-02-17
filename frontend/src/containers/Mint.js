@@ -73,7 +73,7 @@ const Mint = (props) => {
         //Take a look at your Pinata Pinned section, you will see a new file added to you list.
         setMintDisable(true);
 
-        const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+        const wsProvider = new WsProvider(RPC_URL_ROCOCO);
         const api = await ApiPromise.create({provider: wsProvider});
         await api.isReady;
 
