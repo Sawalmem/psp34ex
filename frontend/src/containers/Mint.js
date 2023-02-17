@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Button, Container, Row, Col, Form } from "react-bootstrap";
 import { create as ipfsHttpClient } from "ipfs-http-client";
+import { ApiPromise, WsProvider } from "@polkadot/api";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import BN from "bn.js";
 
-import { MARKETPLACE_ADDRESS_ROCOCO } from "../assets/constants";
+import { MARKETPLACE_ADDRESS_ROCOCO, RPC_URL_ROCOCO } from "../assets/constants";
 
 const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
 const proofSize = 131072;
@@ -71,8 +73,17 @@ const Mint = (props) => {
         //Take a look at your Pinata Pinned section, you will see a new file added to you list.
         setMintDisable(true);
 
-        const gasLimit = -1;
+        const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+        const api = await ApiPromise.create({provider: wsProvider});
+        await api.isReady;
 
+        const {gasRequired, result, output} = await props.nftContract.query["customMint::mint"]
+          (props.activeAccount.address,{gasLimit: api.registry.createType('WeightV2', {
+          refTime,
+          proofSize,
+        }), storageDepositLimit},props.activeAccount.address,ImgHash,MARKETPLACE_ADDRESS_ROCOCO);
+
+        const gasLimit = api.registry.createType('WeightV2', gasRequired);
         // const { gasRequired, result, output } =
         //   await props.nftContract.query.get(props.activeAccount.address, {
         //     gasLimit,
@@ -83,33 +94,18 @@ const Mint = (props) => {
 
         if (ImgHash) {
           await props.nftContract.tx["customMint::mint"](
-            props.activeAccount,
+            {gasLimit : gasLimit, storageDepositLimit},
+            props.activeAccount.address,
             ImgHash,
-            MARKETPLACE_ADDRESS_ROCOCO,
-            { gasLimit }
+            MARKETPLACE_ADDRESS_ROCOCO
           ).signAndSend(
             props.activeAccount.address,
             { signer: props.signer },
-            (result) => {
-              console.log("Transaction status:", result.status.type);
-              setDisplayMessage(result.status.type);
-              if (result.status.isInBlock) {
-                console.log(
-                  "Included at block hash",
-                  result.status.asInBlock.toHex()
-                );
-                setDisplayMessage(result.status.type);
-              }
-
-              if (result.status.isFinalized) {
-                console.log(
-                  "Finalized block hash",
-                  result.status.asFinalized.toHex()
-                );
-                setDisplayMessage(result.status.type);
-
-                //setDisplayMessage(result.status.asFinalized.toHex());
-                process.exit(0);
+            async (res) => {
+              if (res.status.isInBlock) {
+                console.log('in a block')
+              } else if (res.status.isFinalized) {
+                console.log('finalized')
               }
             }
           );
@@ -174,16 +170,7 @@ const Mint = (props) => {
   const onHandleFileChange = async (e) => {
     const file = e.target.files[0];
     setFiles(file);
-    // try {
-    //   const added = await client.add(file, {
-    //     progress: (prog) => console.log(`received: ${prog}`),
-    //   });
-    //   console.log(added, added.path);
-    //   const url = `https://ipfs.infura.io/ipfs/${added.path}`;
-    //   setNftURL(url);
-    // } catch (error) {
-    //   console.log("Error uploading file: ", error);
-    // }
+    
   };
 
   return (

@@ -8,8 +8,8 @@ import {
 } from "@polkadot/extension-dapp";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { ContractPromise } from "@polkadot/api-contract";
-import tokenABI from "./contracts/token";
-import marketplaceABI from "./contracts/marketplace";
+import tokenABI from "./contracts/token.json";
+import marketplaceABI from "./contracts/marketplace.json";
 import {
   TOKEN_ADDRESS_ROCOCO,
   MARKETPLACE_ADDRESS_ROCOCO,

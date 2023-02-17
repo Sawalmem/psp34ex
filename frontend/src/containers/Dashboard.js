@@ -1,9 +1,12 @@
 import React,{useState, useEffect, useCallback} from "react";
 import {Container, Row, Col, Card, Button} from "react-bootstrap";
 import { create as ipfsHttpClient, CID } from 'ipfs-http-client';
+import { ApiPromise, WsProvider } from "@polkadot/api";
 import Front from "../components/Front";
 import {Buffer} from 'buffer';
 import {useNavigate} from 'react-router-dom';
+import { MARKETPLACE_ADDRESS_ROCOCO, RPC_URL_ROCOCO } from "../assets/constants";
+
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0');
 
@@ -17,7 +20,7 @@ const Dashboard = (props) => {
 
     console.log(ownerNFTURI);
 
-    const gasLimit = -1;
+    
     const check_account = async () => {
         if (props?.activeAccount?.address) {
             setActive(props.activeAccount.address);
@@ -29,10 +32,31 @@ const Dashboard = (props) => {
     },[props.activeAccount])
 
     const load_balance = async () => {
-        let balance = await props.nftContract.query["psp34::balanceOf"]
-        (props.activeAccount.address,{gasLimit},props.activeAccount.address);
-        //console.log(balance.output.toHuman());
-        setOwnerNFTTotal(balance.output.toHuman());
+        const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+        const api = await ApiPromise.create({provider: wsProvider});
+        await api.isReady;
+        const gasLimit = api.registry.createType("WeightV2", {
+        refTime: new BN("10000000000"),
+        proofSize: new BN("10000000000"),
+        });
+        const {gasRequired, result, output} = await nftContract.query["psp34::balanceOf"]
+        (activeAccount.address,{gasLimit : gasLimit, storageDepositLimit},activeAccount.address);
+        console.log(result.toHuman());
+
+        // the gas consumed for contract execution
+        console.log(gasRequired.toHuman());
+
+        // check if the call was successful
+        if (result.isOk) {
+        // output the return value
+        console.log('Success', output?.toHuman());
+
+        if (output) {
+            setOwnerNFTTotal(output?.toString());
+        }
+        } else {
+        console.error('Error', result.asErr);
+        }
     }
 
     useEffect(() => {
