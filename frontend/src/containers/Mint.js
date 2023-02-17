@@ -19,6 +19,7 @@ const Mint = (props) => {
   const [nftURL, setNftURL] = useState(null);
   const [displayMessage, setDisplayMessage] = useState(null);
   const [files, setFiles] = useState([]);
+  const [message,setMessage] = useState("");
 
   const checkErrorsAndUploadToIPFS = async () => {
     const { name, description } = formState;
@@ -103,9 +104,11 @@ const Mint = (props) => {
             { signer: props.signer },
             async (res) => {
               if (res.status.isInBlock) {
-                console.log('in a block')
+                console.log('in a block');
+                setMessage("in a block");
               } else if (res.status.isFinalized) {
-                console.log('finalized')
+                console.log('finalized');
+                setMessage("finalized");
               }
             }
           );
@@ -211,7 +214,7 @@ const Mint = (props) => {
               Mint
             </Button>
             <Form.Group>
-              <Form.Label>{displayMessage}</Form.Label>
+              <Form.Label>{message}</Form.Label>
             </Form.Group>
           </Form>
         </Col>
