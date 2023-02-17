@@ -40,7 +40,7 @@ const Dashboard = (props) => {
         proofSize: new BN("10000000000"),
         });
         const {gasRequired, result, output} = await nftContract.query["psp34::balanceOf"]
-        (activeAccount.address,{gasLimit : gasLimit, storageDepositLimit},activeAccount.address);
+        (props.activeAccount.address,{gasLimit : gasLimit, storageDepositLimit},props.activeAccount.address);
         console.log(result.toHuman());
 
         // the gas consumed for contract execution
@@ -67,11 +67,19 @@ const Dashboard = (props) => {
         if (ownerNFTTotal > 0) {
             let arr = [];
             console.log("total : ",ownerNFTTotal);
+            const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+            const api = await ApiPromise.create({provider: wsProvider});
+            await api.isReady;
+            const gasLimit = api.registry.createType("WeightV2", {
+             refTime: new BN("10000000000"),
+            proofSize: new BN("10000000000"),
+            });
 
             for (let i = 0; i < ownerNFTTotal; ++i) {
-                let uid = await props.nftContract.query["psp34Enumerable::ownersTokenByIndex"]
-                (props.activeAccount.address,{gasLimit},props.activeAccount.address,i).then(
-                    uid => arr.push(uid)
+
+                const {gasRequired, result, output} = await props.nftContract.query["psp34Enumerable::ownersTokenByIndex"]
+                (props.activeAccount.address,{gasLimit : gasLimit, storageDepositLimit},props.activeAccount.address,i).then(
+                    output => arr.push(output)
                 );
                 //console.log(i);
                 //let uidx = uid.output.Ok.U8.toHuman();
@@ -92,15 +100,22 @@ const Dashboard = (props) => {
 
     const load_hashes = async () => {
         if (ownerNFTTotal > 0) {
+            const wsProvider = new WsProvider(RPC_URL_SHIBUYA);
+            const api = await ApiPromise.create({provider: wsProvider});
+            await api.isReady;
+            const gasLimit = api.registry.createType("WeightV2", {
+             refTime: new BN("10000000000"),
+            proofSize: new BN("10000000000"),
+            });
             let arr = [];
 
             for (let i = 0; i < ownerNFTTotal; ++i) {
-                let uid = uidArray[i].output.toHuman().Ok.U8;
+                let uid = uidArray[i].output.toHuman().Ok.U64;
                 //console.log(uid.output.toHuman().Ok.U8);
                 //console.log("UIDX",uid.toNumber());
-                let uri = await props.nftContract.query.getTokenUri
-                (props.activeAccount.address,{gasLimit},uid).then(
-                    uri => arr.push(uri.output.toHuman())
+                const {gasRequired, result, output} = await props.nftContract.query.getTokenUri
+                (props.activeAccount.address,{gasLimit : gasLimit, storageDepositLimit},uid).then(
+                    output => arr.push(output.toHuman())
                 )
                 //console.log(uri.output.toHuman());
                 //arr.push(uri.output.toHuman());
